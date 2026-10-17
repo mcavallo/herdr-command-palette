@@ -1,0 +1,12 @@
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc cf5d3ca13353ae5f17c08544331940fb786798a13644a0e42fd7335582b281e5 # shrinks to description = "", keys = false, columns = 1
+cc b5f0b6ff0a6b7f0a8e7648348765cb355b7bb42f34e5f09d0837c5c3ffd0f297 # shrinks to detail = "Split pane right", columns = 6
+cc 7223ae646fd9d6b76d7ac6de5b19406e39ddac06242ed9cc958403997538485c # shrinks to description = "\n", detail = "", keys = false, jump = false, columns = 9
+cc 926a82284ad8ea95f5287c2370a5c26f4ad5b4f40eb6b6d2203ec9f63b21443e # shrinks to description = "\nSplit pane right", detail = "", keys = false, jump = false, columns = 10
+cc 15e6442fdc15626a7a7cc3787d75aa7c36d214f7eb773ab6a860459619a833c8 # shrinks to detail = "\u{fe00}", columns = 6
+cc 24136de0e2716dfb207973c1be72728a9364582a8b580d25138243ecf2e63485 # shrinks to branch = "\u{200b}", cwd = "Split pane right", columns = 6

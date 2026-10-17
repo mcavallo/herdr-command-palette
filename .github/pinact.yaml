@@ -1,0 +1,19 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/suzuki-shunsuke/pinact/v5.0.0/json-schema/pinact.json
+#
+# pinact pins every GitHub Action to a full commit SHA plus a version
+# comment, so a moved or hijacked tag can't change what CI runs.
+# The ci-audit, ci-pin and ci-update tasks run it (mise.toml).
+version: 3
+
+files:
+  - pattern: .github/workflows/*.yml
+  - pattern: .github/workflows/*.yaml
+  - pattern: .github/actions/*/action.yml
+  - pattern: .github/actions/*/action.yaml
+
+# Cooldown: don't adopt a release until it's 7 days old, so a compromised
+# release has time to be noticed and pulled. `always` also checks the
+# versions already pinned, not only new ones picked by `--update`.
+min_age:
+  value: 7
+  always: true

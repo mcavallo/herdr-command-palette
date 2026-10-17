@@ -1,0 +1,112 @@
+---
+source: src/app/fzf_callbacks.rs
+expression: json
+---
+commands:
+{
+  "rows": [
+    {
+      "footer": [
+        [
+          "Show git status"
+        ]
+      ],
+      "id": {
+        "kind": "plugin",
+        "name": "mmc.git.status"
+      },
+      "kind": "plugin",
+      "payload": "mmc.git.status",
+      "right_width": 10,
+      "search_extra": "git",
+      "shortcut": "prefix+g",
+      "title": "Git status",
+      "title_column": null
+    },
+    {
+      "footer": [
+        [
+          "Zoom the focused pane"
+        ]
+      ],
+      "id": {
+        "kind": "builtin",
+        "name": "zoom"
+      },
+      "kind": "builtin",
+      "payload": "zoom",
+      "right_width": 0,
+      "search_extra": "",
+      "shortcut": "prefix+z, prefix+f",
+      "title": "Toggle zoom",
+      "title_column": null
+    },
+    {
+      "footer": [
+        [
+          "Reload"
+        ]
+      ],
+      "id": {
+        "kind": "palette",
+        "name": "reload"
+      },
+      "kind": "palette",
+      "payload": "reload",
+      "right_width": 0,
+      "search_extra": "",
+      "shortcut": "",
+      "title": "Reload palette",
+      "title_column": null
+    },
+    {
+      "footer": [
+        [
+          "lazygit"
+        ]
+      ],
+      "id": {
+        "kind": "custom",
+        "name": "Popup: lazygit"
+      },
+      "kind": "custom",
+      "payload": "2",
+      "right_width": 0,
+      "search_extra": "",
+      "shortcut": "prefix+l",
+      "title": "Popup: lazygit",
+      "title_column": null
+    }
+  ],
+  "version": 1
+}
+
+jump_to:
+{
+  "rows": [
+    {
+      "footer": [
+        [
+          "api-gateway",
+          "logs",
+          "w1:p1"
+        ],
+        [
+          "~/code/api"
+        ]
+      ],
+      "id": {
+        "kind": "pane",
+        "name": "w1:p1"
+      },
+      "kind": "pane",
+      "payload": "w1:p1",
+      "right_width": 8,
+      "search_extra": "api-gateway",
+      "shortcut": "claude",
+      "title": "fix · 3",
+      "title_column": "api-gat…"
+    }
+  ],
+  "version": 1
+}

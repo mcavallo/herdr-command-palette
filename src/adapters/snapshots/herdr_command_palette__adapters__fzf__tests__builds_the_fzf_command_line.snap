@@ -1,0 +1,37 @@
+---
+source: src/adapters/fzf.rs
+expression: "args(&request()).join(\"\\n\")"
+---
+--ansi
+--layout=reverse
+--info=hidden
+--no-hscroll
+--ellipsis=
+--no-separator
+--no-scrollbar
+--border=none
+--margin=0
+--padding=0
+--prompt= 
+--input-border=line
+--ghost=Search
+--pointer=
+--marker=
+--gutter= 
+--delimiter=	
+--with-nth=3
+--tiebreak=index
+--header= HEADER
+--header-first
+--header-border=line
+--footer= FOOTER
+--footer-border=line
+--with-shell=sh -c
+--bind=focus,result:transform-footer:"$HCP_PROGRAM" fzf footer focus --kind {1} -- {4}
+--bind=ctrl-/:transform-footer:"$HCP_PROGRAM" fzf footer toggle --kind {1} -- {4}
+--bind=tab:transform:"$HCP_PROGRAM" fzf switch 1
+--bind=shift-tab:transform:"$HCP_PROGRAM" fzf switch -1
+--bind=resize:transform:"$HCP_PROGRAM" fzf resize
+--color=bg:#181825,bg+:#181825,gutter:#181825,footer:7
+--color=fg:#a6adc8,query:#a6adc8,header:#cdd6f4
+--color=hl:#a6adc8:underline,hl+:#cdd6f4:bold:underline,fg+:#cdd6f4:bold,input-border:dim,header-border:dim,footer-border:dim

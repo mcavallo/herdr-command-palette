@@ -1,0 +1,76 @@
+# Herdr plugin manifest. Commands run target/release/herdr-command-palette:
+# `herdr plugin install` puts it there through the [[build]] script
+# (download, else cargo); in a checkout, `mise run link` builds it first.
+id = "mmc.command-palette"
+name = "Command Palette"
+version = "0.1.0"
+min_herdr_version = "0.9.3"
+description = "Keyboard-driven command palette for Herdr: run commands and jump to panes."
+platforms = ["linux", "macos"]
+
+# Downloads the release binary for Cargo.toml's version, else builds it
+# (docs/releasing.md, "How users get the binary").
+[[build]]
+command = ["sh", "scripts/install.sh"]
+
+[[actions]]
+id = "open"
+title = "Open command palette"
+contexts = ["workspace"]
+command = ["target/release/herdr-command-palette", "open"]
+
+# Meant for key bindings; the palette doesn't list this plugin's actions.
+[[actions]]
+id = "repeat-command"
+title = "Repeat last command"
+contexts = ["workspace"]
+command = ["target/release/herdr-command-palette", "repeat-command"]
+
+[[actions]]
+id = "repeat-jump"
+title = "Repeat last jump"
+contexts = ["workspace"]
+command = ["target/release/herdr-command-palette", "repeat-jump"]
+
+# History: one short process per event, silent, always exit 0.
+[[events]]
+on = "pane.focused"
+command = ["target/release/herdr-command-palette", "history", "focus"]
+
+[[events]]
+on = "pane.moved"
+command = ["target/release/herdr-command-palette", "history", "move"]
+
+# Herdr reuses pane ids after a restart: a new pane drops an earlier
+# pane's history.
+[[events]]
+on = "pane.created"
+command = ["target/release/herdr-command-palette", "history", "created"]
+
+[[panes]]
+id = "palette"
+# Zero-width space: herdr requires a non-empty title; this hides it.
+title = "​"
+placement = "popup"
+width = 76
+height = 22
+command = ["target/release/herdr-command-palette", "palette"]
+
+[[panes]]
+id = "exec"
+title = "Command Palette"
+placement = "popup"
+command = ["target/release/herdr-command-palette", "exec"]
+
+# Asks before a row listed in the settings' `[commands] confirm_ids` runs (picked in the
+# palette or repeated): Herdr's close dialog, 64×7 (Herdr's 64×6 plus a row
+# for the detail's second line). A default only: the request always
+# sets the size, 64×7 with a detail, 64×6 (Herdr's) without, clamped to the
+# tab area.
+[[panes]]
+id = "confirm"
+title = "​"
+placement = "popup"
+width = 64
+height = 7
+command = ["target/release/herdr-command-palette", "confirm"]

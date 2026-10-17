@@ -1,0 +1,97 @@
+---
+source: src/domain/layout/footer.rs
+expression: out
+---
+30 | Split pane right        [^/]|
+30 | ws / tab / w1:p1|
+30 | Split pane right        [^/]|
+20 | Split pane …  [^/]|
+20 | ws / tab / w1:p1|
+20 | … pane right  [^/]|
+12 | Spl…  [^/]|
+12 | …b / w1:p1|
+12 | …ght  [^/]|
+30 | 日本語テキスト          [^/]|
+30 | ws / tab / w1:p1|
+30 | 日本語テキスト          [^/]|
+20 | 日本語テキ…   [^/]|
+20 | ws / tab / w1:p1|
+20 | …語テキスト   [^/]|
+12 | 日…   [^/]|
+12 | …b / w1:p1|
+12 | …ト   [^/]|
+30 | Café crème              [^/]|
+30 | ws / tab / w1:p1|
+30 | Café crème              [^/]|
+20 | Café crème    [^/]|
+20 | ws / tab / w1:p1|
+20 | Café crème    [^/]|
+12 | Caf…  [^/]|
+12 | …b / w1:p1|
+12 | …ème  [^/]|
+30 | 👨‍👩‍👧‍👦 family               [^/]|
+30 | ws / tab / w1:p1|
+30 | 👨‍👩‍👧‍👦 family               [^/]|
+20 | 👨‍👩‍👧‍👦 family     [^/]|
+20 | ws / tab / w1:p1|
+20 | 👨‍👩‍👧‍👦 family     [^/]|
+12 | 👨‍👩‍👧‍👦 …  [^/]|
+12 | …b / w1:p1|
+12 | …ily  [^/]|
+30 | 🇦🇷🇯🇵 flags              [^/]|
+30 | ws / tab / w1:p1|
+30 | 🇦🇷🇯🇵 flags              [^/]|
+20 | 🇦🇷🇯🇵 flags    [^/]|
+20 | ws / tab / w1:p1|
+20 | 🇦🇷🇯🇵 flags    [^/]|
+12 | 🇦🇷…   [^/]|
+12 | …b / w1:p1|
+12 | …ags  [^/]|
+30 | ❤️ love                 [^/]|
+30 | ws / tab / w1:p1|
+30 | ❤️ love                 [^/]|
+20 | ❤️ love       [^/]|
+20 | ws / tab / w1:p1|
+20 | ❤️ love       [^/]|
+12 | ❤️ …  [^/]|
+12 | …b / w1:p1|
+12 | …ove  [^/]|
+30 |  wt create             [^/]|
+30 | ws / tab / w1:p1|
+30 |  wt create             [^/]|
+20 |  wt create   [^/]|
+20 | ws / tab / w1:p1|
+20 |  wt create   [^/]|
+12 |  w…  [^/]|
+12 | …b / w1:p1|
+12 | …ate  [^/]|
+30 | a…b · c                 [^/]|
+30 | ws / tab / w1:p1|
+30 | a…b · c                 [^/]|
+20 | a…b · c       [^/]|
+20 | ws / tab / w1:p1|
+20 | a…b · c       [^/]|
+12 | a…b…  [^/]|
+12 | …b / w1:p1|
+12 | …· c  [^/]|
+30 | x​y                      [^/]|
+30 | ws / tab / w1:p1|
+30 | x​y                      [^/]|
+20 | x​y            [^/]|
+20 | ws / tab / w1:p1|
+20 | x​y            [^/]|
+12 | x​y    [^/]|
+12 | …b / w1:p1|
+12 | x​y    [^/]|
+30 | ↑↓/pgup/pgdn · catego…  [^/]|
+30 | ws / tab / w1:p1|
+30 |                         [^/]|
+20 | ↑↓/pgup/pgd…  [^/]|
+20 | ws / tab / w1:p1|
+20 |               [^/]|
+12 | ↑↓/…  [^/]|
+12 | …b / w1:p1|
+12 |       [^/]|
+76 | ↑↓/pgup/pgdn · category tab/s-tab · select enter · close esc          [^/]|
+76 | ↑↓/pgup/pgdn · category tab/s-tab · select enter · close esc|
+76 |                                                                       [^/]|

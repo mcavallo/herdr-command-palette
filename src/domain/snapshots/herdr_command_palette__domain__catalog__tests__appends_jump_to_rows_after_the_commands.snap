@@ -1,0 +1,7 @@
+---
+source: src/domain/catalog.rs
+expression: "tsv(&rows[first_pane..])"
+---
+pane	w1:p1	herdr-command-palet…  terminal · 1	terminal	herdr-command-palette / 1 / w1:p1	~/dotfiles	herdr-command-palette
+pane	w1:p2	herdr-command-palet…  claude · 2	claude	herdr-command-palette / 1 / w1:p2	/tmp	herdr-command-palette
+pane	w2:p1	api                   api	terminal	api / 1 / w2:p1	~

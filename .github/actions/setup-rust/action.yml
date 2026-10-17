@@ -1,0 +1,48 @@
+# Installs a Rust toolchain through rustup, with the cargo cache rules
+# every job shares. Warnings are errors: setup-rust-toolchain sets
+# CARGO_BUILD_WARNINGS=deny. Needs actions/checkout first.
+# Actions are pinned to commit SHAs by pinact (`mise run ci-pin`).
+name: Set up Rust
+description: Rust toolchain with components and target, and the shared cargo cache rules
+
+inputs:
+  toolchain:
+    description: Toolchain to install and make the default, e.g. stable or 1.99.
+    required: false
+    default: stable
+  components:
+    description: Extra rustup components, comma-separated (e.g. "rustfmt, clippy"). Empty for none.
+    required: false
+    default: ""
+  target:
+    description: Extra compilation target (e.g. x86_64-unknown-linux-musl). Empty for the host only.
+    required: false
+    default: ""
+  cache:
+    description: >-
+      "true": restore the cargo cache on every run, save it from develop
+      only, and never from a failed run (a key is saved once and never
+      updated, so a half-built target/ would stay). "false": no cache.
+    required: false
+    default: "true"
+
+outputs:
+  rustc-version:
+    description: The installed rustc's version.
+    value: ${{ steps.rust.outputs.rustc-version }}
+  cachekey:
+    description: The cargo cache key setup-rust-toolchain used.
+    value: ${{ steps.rust.outputs.cachekey }}
+
+runs:
+  using: composite
+  steps:
+    - id: rust
+      uses: actions-rust-lang/setup-rust-toolchain@ecabd13d1c56bd1345c230e542e9144811ad706f # v2.0.0
+      with:
+        toolchain: ${{ inputs.toolchain }}
+        components: ${{ inputs.components }}
+        target: ${{ inputs.target }}
+        cache: ${{ inputs.cache }}
+        cache-save-if: ${{ github.ref == 'refs/heads/develop' }}
+        cache-on-failure: false

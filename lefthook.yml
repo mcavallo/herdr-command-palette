@@ -1,0 +1,17 @@
+# Git hooks (https://lefthook.dev). Once per clone: `lefthook install`.
+#
+# pre-commit: what `mise run fmt` does, on the staged files only, then
+# re-staged (stage_fixed). Unstaged changes in the same files are kept
+# out of the commit. It calls the formatters directly, not the mise task:
+# the task formats the whole tree and takes no file list.
+pre-commit:
+  parallel: true
+  jobs:
+    - name: rustfmt
+      glob: "*.rs"
+      run: rustfmt {staged_files}
+      stage_fixed: true
+    - name: dprint
+      glob: "*.{json,toml,md}"
+      run: dprint fmt --allow-no-files {staged_files}
+      stage_fixed: true

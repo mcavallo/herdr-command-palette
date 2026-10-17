@@ -1,0 +1,10 @@
+---
+source: src/domain/layout/dialog.rs
+assertion_line: 220
+expression: "lines.map(|line| format!(\"{line:?}\")).join(\"\\n\")"
+---
+"\u{1b}[48;2;30;30;46m\u{1b}[38;5;4m\u{1b}[1m Close workspace?                                            \u{1b}[0m"
+"\u{1b}[48;2;30;30;46m\u{1b}[38;5;7m myproj                                                      \u{1b}[0m"
+"\u{1b}[48;2;30;30;46m\u{1b}[38;5;7m 3 panes                                                     \u{1b}[0m"
+"\u{1b}[48;2;30;30;46m\u{1b}[38;5;7m                                                             \u{1b}[0m"
+"\u{1b}[48;2;30;30;46m\u{1b}[38;5;7m                 \u{1b}[0m\u{1b}[48;5;4m\u{1b}[38;2;30;30;46m\u{1b}[1m  ↵ confirm  \u{1b}[0m\u{1b}[48;2;30;30;46m\u{1b}[38;5;7m  \u{1b}[0m\u{1b}[48;5;8m\u{1b}[38;5;7m\u{1b}[1m esc cancel \u{1b}[0m\u{1b}[48;2;30;30;46m\u{1b}[38;5;7m                 \u{1b}[0m"

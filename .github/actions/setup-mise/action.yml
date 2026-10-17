@@ -1,0 +1,52 @@
+# Installs mise and the dev tools a job needs from mise.toml, `--locked`
+# from mise.lock (checksums). One place for mise's version and binary
+# checksum: bump both here (docs/development.md, "GitHub Actions").
+# Needs actions/checkout first (mise.toml, mise.lock, this file).
+# Linux x64 runners only: the checksum is for that binary.
+# Actions are pinned to commit SHAs by pinact (`mise run ci-pin`).
+name: Set up mise
+description: mise at a pinned version and checksum, the job's tools from mise.lock, tasks without auto-install
+
+inputs:
+  tools:
+    description: >-
+      Tools to install, space-separated, as named in mise.toml (passed to
+      `mise install`). Empty: every tool in mise.toml.
+    required: false
+    default: ""
+  install:
+    description: >-
+      "false": install mise only, no tools (for jobs that only use
+      `mise run` with tools from elsewhere, such as rustup).
+    required: false
+    default: "true"
+  cache:
+    description: >-
+      "true": restore the tools from the cache and save it from develop
+      only (pull requests reuse it). "false": no cache.
+    required: false
+    default: "true"
+
+outputs:
+  cache-hit:
+    description: Whether the tools came from the cache.
+    value: ${{ steps.mise.outputs.cache-hit }}
+
+runs:
+  using: composite
+  steps:
+    - id: mise
+      uses: jdx/mise-action@2d8d4cafcbd33be2ea37d2b6f5ad595363d1f1ca # v5.1.1
+      with:
+        version: 2026.10.4
+        # The extracted mise binary (the action also checks the release's SHASUMS256.txt).
+        sha256: 2b8ce21f550872807bcaabf45b6bc5c64bfbd6dc3bf49dd4e67de700ef3ceb75
+        install: ${{ inputs.install }}
+        install_args: ${{ inputs.tools }}
+        cache: ${{ inputs.cache }}
+        cache_save: ${{ github.ref == 'refs/heads/develop' }}
+    # Each job installs only the tools above; without this, `mise run`
+    # would install every tool in mise.toml first. A task whose tool is
+    # missing fails instead. Set for the rest of the job.
+    - shell: bash
+      run: echo "MISE_TASK_RUN_AUTO_INSTALL=false" >>"$GITHUB_ENV"

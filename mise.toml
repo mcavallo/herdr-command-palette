@@ -1,0 +1,193 @@
+# Dev tools and tasks for this repository. Tools are pinned to exact
+# versions; CI installs the same ones (jdx/mise-action, `--locked` from
+# mise.lock). `mise install` once per clone. The Rust toolchain stays
+# with rustup (rust-version in Cargo.toml). Bumping a tool:
+# docs/development.md, "Development tools".
+#
+# Tasks: `mise tasks` lists them, `mise run <task>` runs one. CI runs the
+# same tasks (ci.yml), so a command lives here only.
+
+[tools]
+dprint = "0.60.1"
+shellcheck = "0.11.0"
+actionlint = "1.7.12"
+pinact = "5.0.0"
+lefthook = "2.2.0"
+# Not in mise's registry: aqua packages (prebuilt, checksummed).
+"aqua:taiki-e/cargo-llvm-cov" = "0.9.1"
+"aqua:EmbarkStudios/cargo-deny" = "0.20.2"
+
+[settings]
+# Same cooldown as pinact for actions: `mise upgrade` and `@latest` skip
+# releases younger than 7 days. Exact versions here are taken as they are.
+minimum_release_age = "7d"
+# mise.lock records each tool's download URL and checksum per platform.
+lockfile = true
+
+# Shared by the tasks below as `{{vars.<name>}}`.
+[vars]
+# The Herdr CLI; HERDR_BIN_PATH overrides it, as for the plugin itself
+# (src/domain/env.rs).
+herdr = '"${HERDR_BIN_PATH:-herdr}"'
+plugin = "mmc.command-palette"
+# pinact reads its token from the environment; fall back to the gh CLI
+# login (unauthenticated GitHub API calls are limited to 60 an hour).
+# CI sets PINACT_GITHUB_TOKEN, so gh isn't called there.
+pinact = 'PINACT_GITHUB_TOKEN="${PINACT_GITHUB_TOKEN:-$(gh auth token 2>/dev/null || true)}" pinact'
+# Coverage leaves out the thin binary entry point (docs/development.md,
+# "Coverage").
+cov_flags = "--locked --ignore-filename-regex 'src/main\\.rs' --fail-under-lines 100"
+
+# Every cargo task passes --locked, as CI does: a Cargo.lock that is out
+# of date fails here instead of on the pull request.
+
+# --- Build and install ---------------------------------------------------
+
+[tasks.build]
+description = "Release build at target/release/, where the manifest's commands point"
+run = "cargo build --locked --release"
+
+# link, unlink, open and logs talk to your Herdr: not for agents
+# (CLAUDE.md), whose live checks use an isolated Herdr.
+[tasks.link]
+description = "Build, then register this checkout with Herdr (humans only)"
+depends = ["build"]
+run = '{{vars.herdr}} plugin link "{{config_root}}"'
+
+[tasks.unlink]
+description = "Unregister this checkout from Herdr (humans only)"
+run = "{{vars.herdr}} plugin unlink {{vars.plugin}}"
+
+[tasks.open]
+description = "Open the palette in the running Herdr session (humans only)"
+run = "{{vars.herdr}} plugin pane open --plugin {{vars.plugin}} --entrypoint palette"
+
+[tasks.logs]
+description = "Recent plugin command runs, newest first, from Herdr's plugin log (humans only)"
+run = "{{vars.herdr}} plugin log list --plugin {{vars.plugin}}"
+
+# --- Tests ---------------------------------------------------------------
+
+[tasks.test]
+description = "Unit, integration and doc tests"
+run = ["cargo test --locked --all-targets", { task = "doctest" }]
+
+# llvm-cov (the `cov` task) runs the unit and integration tests but not the
+# doc tests, so `ci` runs `cov` and this, never `test`.
+[tasks.doctest]
+description = "Doc tests only (cov runs the other tests, not these)"
+run = "cargo test --locked --doc"
+
+[tasks.cov]
+description = "Unit and integration tests with the 100% line coverage gate"
+run = "cargo llvm-cov {{vars.cov_flags}}"
+
+[tasks.cov-html]
+description = "Coverage report in the browser"
+run = "cargo llvm-cov {{vars.cov_flags}} --html --open"
+
+# --- Checks --------------------------------------------------------------
+
+# `lint` runs its parts in parallel. They are hidden from `mise tasks`
+# (`mise tasks --hidden` shows them); CI runs each as its own step.
+[tasks.lint]
+description = "Format check, clippy, cargo deny, scripts, workflows, version sync (no changes made)"
+depends = ["lint:fmt", "lint:clippy", "lint:deny", "lint:scripts"]
+
+[tasks."lint:fmt"]
+description = "Rust, JSON, TOML and Markdown formatting check"
+hide = true
+run = ["cargo fmt --check", "dprint check"]
+
+[tasks."lint:clippy"]
+description = "Clippy (pedantic, from Cargo.toml) with warnings as errors"
+hide = true
+run = "cargo clippy --locked --all-targets -- -D warnings"
+
+# Reads `cargo metadata` only; nothing is compiled. Config: deny.toml.
+[tasks."lint:deny"]
+description = "Licenses, advisories, bans and sources of the dependencies"
+hide = true
+run = "cargo deny check"
+
+[tasks."lint:scripts"]
+description = "shellcheck on scripts/, actionlint on the workflows, version sync check"
+hide = true
+run = ["shellcheck scripts/*.sh", "actionlint", "scripts/sync-version.sh --check"]
+
+[tasks.docs]
+description = "API docs, warnings are errors"
+env = { RUSTDOCFLAGS = "-D warnings" }
+run = "cargo doc --locked --no-deps --document-private-items"
+
+# The oldest Rust the crate claims to build with. The toolchain comes
+# from rustup, like the stable one (mise doesn't manage Rust here): the
+# version is read from Cargo.toml's rust-version, so it can't drift, and
+# installed on first use (minimal profile). Not part of `ci`: a second
+# toolchain download and a full recompile of the dependencies for a
+# check that rarely fails; CI's msrv job runs it on every change.
+[tasks.msrv]
+description = "cargo check with the rust-version in Cargo.toml (installs that toolchain through rustup)"
+run = '''
+msrv=$(sed -n 's/^rust-version = "\(.*\)"$/\1/p' Cargo.toml | head -n 1)
+[ -n "$msrv" ] || { echo "msrv: no rust-version in Cargo.toml" >&2; exit 1; }
+rustup toolchain install "$msrv" --profile minimal --no-self-update
+cargo "+$msrv" check --locked --all-targets
+'''
+
+# Not `ci-audit`: it needs network and a GitHub token. CI's lint job runs
+# it too; run it yourself after changing .github/.
+[tasks.ci]
+description = "Everything a change must pass, as CI runs it (lint, cov, doctest, docs)"
+depends = ["lint", "cov", "doctest", "docs"]
+
+# --- Formatting and versions ---------------------------------------------
+
+# lefthook.yml does the same on the staged files only, before each commit.
+[tasks.fmt]
+description = "Format Rust (cargo fmt) and the JSON, TOML and Markdown files (dprint)"
+run = ["cargo fmt", "dprint fmt"]
+
+[tasks.sync-version]
+description = "Copy Cargo.toml's version into herdr-plugin.toml (release PRs do this in CI)"
+run = "scripts/sync-version.sh"
+
+# --- GitHub Actions pins (.github/pinact.yaml) ---------------------------
+
+[tasks.ci-audit]
+description = "Check GitHub Actions pins, version comments and the 7-day cooldown (no edits)"
+run = "{{vars.pinact}} run --check --verify-comment"
+
+[tasks.ci-pin]
+description = "Pin unpinned GitHub Actions to commit SHAs (edits .github/)"
+run = "{{vars.pinact}} run"
+
+[tasks.ci-update]
+description = "Move pinned GitHub Actions to the newest release past the cooldown (edits .github/)"
+run = "{{vars.pinact}} run --update"
+
+# --- Upgrades and releases -----------------------------------------------
+
+# Needs podman (or HCP_E2E_RUNTIME=docker). More options, as environment
+# variables: scripts/e2e-install.sh.
+[tasks.e2e-install]
+description = "`herdr plugin install` from GitHub in a throwaway container with a fresh Herdr"
+usage = '''
+arg "[mode]" default="download" help="download: the release binary must be downloaded; cargo: the cargo fallback must build it" {
+  choices "download" "cargo"
+}
+arg "[herdr]" default="latest" help="Herdr version to install, e.g. 0.9.5"
+'''
+run = 'scripts/e2e-install.sh "${usage_mode}" "${usage_herdr}"'
+
+[tasks.e2e-clean]
+description = "Remove the container images e2e-install caches (the Rust one is about 1 GB)"
+run = "scripts/e2e-install.sh clean"
+
+# Run on Herdr upgrades. Needs git and network.
+[tasks.theme-drift]
+description = "Compare the mirrored theme tables with Herdr's source at a tag"
+usage = '''
+arg "[tag]" help="Herdr tag, e.g. v0.9.4; default: v<min_herdr_version> from herdr-plugin.toml"
+'''
+run = 'scripts/theme-drift.sh ${usage_tag:+"$usage_tag"}'

@@ -1,0 +1,8 @@
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc cea8dc97d04e2c0ba3f7678c85d31a4ffa9606640f50925e676ed478792a78b6 # shrinks to rows = [Row { kind: Plugin, payload: "a", title: "a", shortcut: "", description: "", search_extra: "", id: RowId { kind: Plugin, name: "a" } }, Row { kind: Custom, payload: "c", title: "c", shortcut: "", description: "", search_extra: "", id: RowId { kind: Custom, name: "c" } }], recent = [RowId { kind: Custom, name: "c" }, RowId { kind: Plugin, name: "a" }, RowId { kind: Custom, name: "c" }]
+cc c31f4703a086d00908587a77bb8c5f923785b7db7f3c0e8de94397a2dd6244a2 # shrinks to rows = [Row { kind: Pane, payload: "w2:p1", title: "w2:p1", shortcut: "", description: "", search_extra: "", id: RowId { kind: Pane, name: "w2:p1" } }, Row { kind: Pane, payload: "w2:p2", title: "w2:p2", shortcut: "", description: "", search_extra: "", id: RowId { kind: Pane, name: "w2:p2" } }], focused = [], current = Some("w2:p1")

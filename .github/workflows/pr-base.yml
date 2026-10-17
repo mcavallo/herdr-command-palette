@@ -1,0 +1,39 @@
+# Pull requests go against develop; master only receives releases (the
+# release workflow fast-forwards it). GitHub suggests the default branch,
+# master, when opening one: this moves it to develop, comments, then
+# closes and reopens it so ci.yml (pull requests against develop only)
+# runs. The release App's token: events from the workflow's own token
+# don't start other workflows. docs/releasing.md, "Branches".
+# Actions are pinned to commit SHAs by pinact (`mise run ci-pin`).
+name: pr-base
+
+on:
+  pull_request:
+    branches: [master]
+    types: [opened, reopened, edited]
+
+permissions: {}
+
+jobs:
+  retarget:
+    # Pull requests from this repository's own branches only. A fork's run
+    # gets no secrets (so no App token), and must never get them: no
+    # `pull_request_target`. A fork's pull request against master can't
+    # be merged anyway (master ruleset).
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+      - run: |
+          gh pr edit "$PR" --base develop
+          gh pr comment "$PR" --body "Moved to \`develop\`: pull requests go against \`develop\`, \`master\` only receives releases (docs/releasing.md, \"Branches\"). Closed and reopened to run CI against \`develop\`."
+          gh pr close "$PR"
+          gh pr reopen "$PR"
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          GH_REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}

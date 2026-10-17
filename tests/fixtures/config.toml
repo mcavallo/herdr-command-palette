@@ -1,0 +1,29 @@
+[keys]
+split_vertical = "prefix+backslash"
+zoom = ["prefix+z", "prefix+f"]
+close_pane = ""
+next_agent = "prefix+alt+n"
+
+[[keys.command]]
+key = "prefix+ctrl+g"
+type = "plugin_action"
+command = "demo.hello"
+description = "hello"
+
+[[keys.command]]
+key = "prefix+alt+l"
+type = "popup"
+command = "lazygit"
+description = "Popup: lazygit"
+width = "90%"
+height = "90%"
+
+[[keys.command]]
+type = "shell"
+command = "notify-send hi"
+
+[[keys.command]]
+key = "prefix+alt+t"
+type = "pane"
+command = "htop"
+description = "htop"

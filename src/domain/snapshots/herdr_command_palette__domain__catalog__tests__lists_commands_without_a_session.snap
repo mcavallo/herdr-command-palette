@@ -1,0 +1,46 @@
+---
+source: src/domain/catalog.rs
+expression: tsv(&rows)
+---
+plugin	demo.hello	hello	prefix+ctrl+g	demo.hello
+plugin	demo.bye	demo.bye		demo.bye
+builtin	split_vertical	Split pane right	prefix+backslash	Split the focused pane, new pane on the right
+builtin	split_horizontal	Split pane down	prefix+minus	Split the focused pane, new pane below
+builtin	close_pane	Close pane		Close the focused pane and its process
+builtin	zoom	Toggle zoom	prefix+z, prefix+f	Zoom the focused pane to fill the tab, or restore it
+builtin	focus_pane_left	Focus pane left	prefix+h	Move focus to the pane on the left
+builtin	focus_pane_down	Focus pane down	prefix+j	Move focus to the pane below
+builtin	focus_pane_up	Focus pane up	prefix+k	Move focus to the pane above
+builtin	focus_pane_right	Focus pane right	prefix+l	Move focus to the pane on the right
+builtin	swap_pane_left	Swap pane left	prefix+shift+h	Swap the focused pane with its left neighbor
+builtin	swap_pane_down	Swap pane down	prefix+shift+j	Swap the focused pane with the pane below
+builtin	swap_pane_up	Swap pane up	prefix+shift+k	Swap the focused pane with the pane above
+builtin	swap_pane_right	Swap pane right	prefix+shift+l	Swap the focused pane with its right neighbor
+builtin	resize_pane_left	Resize pane left		Move the focused pane's border left one step
+builtin	resize_pane_down	Resize pane down		Move the focused pane's border down one step
+builtin	resize_pane_up	Resize pane up		Move the focused pane's border up one step
+builtin	resize_pane_right	Resize pane right		Move the focused pane's border right one step
+builtin	cycle_pane_next	Next pane	prefix+tab	Focus the next pane in this tab
+builtin	cycle_pane_previous	Previous pane	prefix+shift+tab	Focus the previous pane in this tab
+builtin	clear_pane	Clear pane		Clear the focused pane's screen and scrollback
+builtin	edit_scrollback	Edit scrollback	prefix+e	Open the focused pane's scrollback in $EDITOR
+builtin	new_tab	New tab	prefix+c	Create a tab in this workspace and focus it
+builtin	previous_tab	Previous tab	prefix+p	Focus the previous tab in this workspace
+builtin	next_tab	Next tab	prefix+n	Focus the next tab in this workspace
+builtin	move_tab_previous	Move tab left		Move the current tab one position left
+builtin	move_tab_next	Move tab right		Move the current tab one position right
+builtin	close_tab	Close tab	prefix+shift+x	Close the current tab and all its panes
+builtin	new_workspace	New workspace	prefix+shift+n	Create a workspace and focus it
+builtin	close_workspace	Close workspace	prefix+shift+d	Close the current workspace and all its tabs
+builtin	previous_workspace	Previous workspace		Focus the previous workspace
+builtin	next_workspace	Next workspace		Focus the next workspace
+builtin	previous_agent	Previous agent		Focus the previous pane running an agent
+builtin	next_agent	Next agent	prefix+alt+n	Focus the next pane running an agent
+builtin	reload_config	Reload config	prefix+shift+r	Re-read config.toml in the running server
+palette	move_pane_new_tab	Move pane to new tab		Move the focused pane into a new tab in this workspace
+palette	move_pane_new_workspace	Move pane to new workspace		Move the focused pane into a new workspace
+palette	edit_herdr_config	Edit Herdr config		Open config.toml in your editor, then check and reload it
+palette	edit_settings	Edit Command Palette settings		Open settings.toml in your editor, then check it
+custom	1	Popup: lazygit	prefix+alt+l	lazygit
+custom	2	shell		notify-send hi
+custom	3	htop	prefix+alt+t	htop

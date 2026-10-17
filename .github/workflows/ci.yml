@@ -1,0 +1,125 @@
+# Pull request and develop-branch checks: the tasks of `mise run ci`
+# (mise.toml), split into jobs, plus the pinact audit (`mise run ci-audit`).
+# The commands live in mise.toml only; each step runs one task.
+# Not run on master: the release workflow only fast-forwards it to
+# commits already checked here (docs/releasing.md). Pull requests
+# against master don't run either: pr-base.yml moves them to develop
+# and reopens them, which runs this against develop.
+# Actions are pinned to commit SHAs by pinact (`mise run ci-pin`, checked by `mise run ci-audit`).
+name: ci
+
+on:
+  pull_request:
+    branches: [develop]
+  push:
+    branches: [develop]
+
+permissions:
+  contents: read
+
+# A new push to a pull request cancels its running checks; develop runs
+# every push to the end (its cache feeds pull requests).
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+# Toolchain and tool setup: .github/actions/setup-rust (warnings are
+# errors, develop-only cache) and setup-mise (pinned mise, the job's tools
+# only, MISE_TASK_RUN_AUTO_INSTALL=false).
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  # Formatting, lints, API docs, scripts, workflows, version sync.
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup-rust
+        with:
+          components: rustfmt, clippy
+      - uses: ./.github/actions/setup-mise
+        with:
+          tools: dprint shellcheck actionlint pinact
+      # cargo fmt and dprint (plugins pinned with checksums in dprint.json).
+      - run: mise run lint:fmt
+      - run: mise run lint:clippy
+      - run: mise run docs
+      # shellcheck, actionlint, version sync.
+      - run: mise run lint:scripts
+      # Pinned to SHAs, version comments true, releases past the 7-day cooldown.
+      - run: mise run ci-audit
+        env:
+          PINACT_GITHUB_TOKEN: ${{ github.token }}
+
+  deny:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # cargo-deny reads `cargo metadata`; nothing is compiled.
+      - uses: ./.github/actions/setup-rust
+        with:
+          cache: false
+      - uses: ./.github/actions/setup-mise
+        with:
+          tools: aqua:EmbarkStudios/cargo-deny
+      - run: mise run lint:deny
+
+  # All tests on Linux, with the 100% line coverage gate. llvm-cov runs the
+  # unit and integration tests; doc tests run separately.
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup-rust
+        with:
+          components: llvm-tools-preview
+      - uses: ./.github/actions/setup-mise
+        with:
+          tools: aqua:taiki-e/cargo-llvm-cov
+      # main.rs is excluded on purpose (docs/development.md, "Coverage").
+      - run: mise run cov
+      - run: mise run doctest
+
+  test-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup-rust
+      # `mise run test`, inline: the job needs no dev tools, and mise here
+      # would need a second pinned binary checksum (macOS).
+      - run: cargo test --locked --all-targets
+      - run: cargo test --locked --doc
+
+  # Compiles with exactly the rust-version declared in Cargo.toml.
+  msrv:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # Read from Cargo.toml, so the toolchain can't drift from it. The
+      # msrv task reads it again; here it picks the toolchain this action
+      # installs and caches, so the task's rustup install is a no-op.
+      - id: msrv
+        run: |
+          version=$(sed -n 's/^rust-version = "\(.*\)"$/\1/p' Cargo.toml | head -n 1)
+          [ -n "$version" ] || { echo "no rust-version in Cargo.toml" >&2; exit 1; }
+          echo "version=$version" >>"$GITHUB_OUTPUT"
+      - uses: ./.github/actions/setup-rust
+        with:
+          toolchain: ${{ steps.msrv.outputs.version }}
+      # Only mise itself, for `mise run`: the msrv task needs no dev tools.
+      - uses: ./.github/actions/setup-mise
+        with:
+          install: false
+          cache: false
+      - run: mise run msrv

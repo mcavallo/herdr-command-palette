@@ -1,0 +1,53 @@
+[package]
+name = "herdr-command-palette"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.99"
+description = "Keyboard-driven command palette plugin for Herdr: run commands and jump to panes."
+license = "GPL-3.0-or-later"
+repository = "https://github.com/mcavallo/herdr-command-palette"
+keywords = ["herdr", "plugin", "command-palette", "fzf", "terminal"]
+categories = ["command-line-utilities"]
+publish = false
+
+[dependencies]
+clap = { version = "4.6.7", features = ["derive"] }
+# History store. `bundled` compiles SQLite in: no system library
+# needed; default features (statement cache, wasm) are unused.
+rusqlite = { version = "0.40.2", default-features = false, features = ["bundled"] }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.151"
+thiserror = "2.0.21"
+toml = { version = "1.1.8", default-features = false, features = ["std", "parse", "serde"] }
+unicode-segmentation = "1.13.3"
+unicode-width = "0.2.2"
+
+[dev-dependencies]
+assert_cmd = "2.2.2"
+insta = "1.49.0"
+predicates = "3.1.4"
+proptest = "1.11.0"
+tempfile = "3.27.0"
+
+# Only `tests/confirm.rs` uses it, and that test is Linux only.
+[target.'cfg(target_os = "linux")'.dev-dependencies]
+# Runs the `confirm` pane in a pseudo-terminal it owns as controlling
+# terminal, so a test can type Enter. Only adds itself: its one
+# dependency, rustix, is already in the tree via tempfile.
+pty-process = { version = "0.5.3", default-features = false }
+
+[lints.rust]
+unsafe_code = "forbid"
+missing_docs = "warn"
+
+[lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+# Nursery lint, opted into alone: `Self` inside `impl` blocks (docs/code-style.md).
+use_self = "warn"
+
+[profile.release]
+# Start-up time beats size: the focus hook runs on every pane switch, so
+# opt-level stays at the default 3.
+strip = true
+lto = true
+codegen-units = 1

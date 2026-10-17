@@ -1,0 +1,31 @@
+# Weekly RustSec advisory check, so a new advisory for a dependency shows
+# up between changes. Runs from the default branch (master: the latest
+# release, what users run); failures email the repository owner.
+# Actions are pinned to commit SHAs by pinact (`mise run ci-pin`).
+name: audit
+
+on:
+  schedule:
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  advisories:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # cargo-deny reads `cargo metadata`; nothing is compiled.
+      - uses: ./.github/actions/setup-rust
+        with:
+          cache: false
+      # cargo-deny pinned in mise.toml, installed `--locked` from mise.lock.
+      - uses: ./.github/actions/setup-mise
+        with:
+          tools: aqua:EmbarkStudios/cargo-deny
+          cache: false
+      - run: cargo deny check advisories

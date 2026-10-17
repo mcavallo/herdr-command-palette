@@ -1,0 +1,98 @@
+# Release binaries for the four targets (docs/releasing.md, "Release assets").
+# Called by release-plz.yml with a tag: uploads each archive and its
+# checksum to that draft release and attests it. Run by hand without a
+# tag: a dry run, the archives become workflow artifacts.
+# Actions are pinned to commit SHAs by pinact (`mise run ci-pin`).
+name: build
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        description: Release tag (vX.Y.Z) to build and upload to
+        type: string
+        required: true
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    name: build (${{ matrix.target }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: aarch64-apple-darwin
+            os: macos-latest
+          # Cross-compiled on the arm64 runner: no smoke test.
+          - target: x86_64-apple-darwin
+            os: macos-latest
+            no-smoke: true
+          - target: x86_64-unknown-linux-musl
+            os: ubuntu-latest
+          # Smoke tested under QEMU (setup-cross-toolchain's runner).
+          - target: aarch64-unknown-linux-musl
+            os: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: write # upload to the release
+      id-token: write # attestation signing
+      attestations: write
+    env:
+      TAG: ${{ inputs.tag }}
+      TARGET: ${{ matrix.target }}
+      ARCHIVE: herdr-command-palette-${{ matrix.target }}.tar.gz
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+          persist-credentials: false
+      # No cache: release builds start clean.
+      - uses: ./.github/actions/setup-rust
+        with:
+          target: ${{ matrix.target }}
+          cache: false
+      # musl C toolchain (bundled SQLite is C) and, for aarch64, QEMU.
+      - if: runner.os == 'Linux'
+        uses: taiki-e/setup-cross-toolchain-action@12b7ad4acfa95a1476779d6c06699b96ec1691f8 # v1.42.0
+        with:
+          target: ${{ matrix.target }}
+      - run: cargo build --locked --release --target "$TARGET"
+      - name: Smoke test
+        if: ${{ !matrix.no-smoke }}
+        run: |
+          out=$(cargo run --locked --release --target "$TARGET" -- --version)
+          echo "$out"
+          expected="herdr-command-palette $(sed -n 's/^version = "\(.*\)"$/\1/p' Cargo.toml | head -n 1)"
+          test "$out" = "$expected"
+      - name: Package
+        env:
+          COPYFILE_DISABLE: 1 # macOS tar: no AppleDouble (._*) entries
+        run: |
+          tar -czf "$ARCHIVE" -C "target/$TARGET/release" herdr-command-palette
+          shasum -a 256 "$ARCHIVE" > "$ARCHIVE.sha256"
+          cat "$ARCHIVE.sha256"
+      - name: Upload to the release
+        if: inputs.tag != ''
+        run: gh release upload "$TAG" "$ARCHIVE" "$ARCHIVE.sha256" --clobber
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+      # Attestations need a public repository (or GitHub Enterprise Cloud).
+      - if: inputs.tag != '' && !github.event.repository.private
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: ${{ env.ARCHIVE }}
+      - if: inputs.tag == ''
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ${{ env.ARCHIVE }}
+          path: |
+            ${{ env.ARCHIVE }}
+            ${{ env.ARCHIVE }}.sha256
+          if-no-files-found: error

@@ -1,0 +1,17 @@
+# release-plz: release PRs and releases from Conventional Commits.
+# https://release-plz.dev/docs/config — flow in docs/releasing.md.
+
+[workspace]
+# Versions come from v* git tags; nothing is published to crates.io.
+git_only = true
+# The library is internal, not a public API to check.
+semver_check = false
+# Release only when a release PR is merged, not on every push.
+release_always = false
+# The release workflow uploads the binaries, then publishes it.
+git_release_draft = true
+pr_labels = ["release"]
+# Only user-facing commits start a release: feat, fix, perf, or any type
+# marked breaking (`type!:`, `type(scope)!:`). ci:, docs:, chore:, test:
+# alone don't; they still show in the next release's changelog.
+release_commits = "^(feat|fix|perf)[(:!]|^[a-z]+(\\(.*\\))?!:"

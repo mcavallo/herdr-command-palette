@@ -1,0 +1,15 @@
+# A Herdr v0.9.3 config using indexed shortcuts: `[keys.indexed]` is a
+# table, not a binding, and must not break parsing.
+[keys]
+zoom = "prefix+f"
+
+[keys.indexed]
+tabs = "alt"
+workspaces = "ctrl+alt"
+agents = "alt+shift"
+
+[[keys.command]]
+key = "prefix+alt+t"
+type = "pane"
+command = "htop"
+description = "htop"
